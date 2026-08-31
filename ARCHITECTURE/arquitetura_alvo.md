@@ -4,7 +4,7 @@
 
 ## Desenho da Solução
 
-![Arquitetura Alvo - Controle de Fluxo de Caixa](./img/DesTecVerityArquSol_trad_v2V01.drawio.png)
+![Arquitetura Alvo - Controle de Fluxo de Caixa](./img/ArquiteturaAlvo.png)
 
 ## Diagrama de Contexto
 
