@@ -99,86 +99,11 @@ Rel(lancamentos, consolidado, "Publica eventos de lançamento", "Evento assíncr
 
 ## Diagrama de Contêineres
 
-```mermaid
-flowchart LR
-    subgraph Cliente
-        C[Comerciante / App Cliente]
-    end
-
-    subgraph "Edge / Ingress"
-        IDP[IdP Externo<br/>OAuth2 / JWT]
-        WAF[Firewall / WAF]
-        LB[Load Balancer]
-    end
-
-    subgraph "VPC - Região"
-        subgraph "SubNet Private - AZ-A"
-            L_API[API REST - Spring Boot]
-            L_DB[(PostgreSQL Primary)]
-            L_OUT[Outbox Publisher]
-        end
-
-        subgraph "SubNet Private - AZ-B"
-            S_API[API REST - Spring Boot]
-            S_DB[(PostgreSQL Secondary / Read Replica)]
-            S_CACHE[(Redis - cache dias fechados)]
-            S_CONSUMER[Consumidor de Eventos<br/>(idempotente)]
-        end
-
-        MQ{{Broker Queue<br/>Amazon MQ / RabbitMQ}}
-    end
-
-    C -- "HTTPS + OAuth2 JWT (client_id + tenantId)" --> IDP
-    IDP -- "token JWT" --> WAF
-    WAF --> LB
-    LB --> L_API
-    LB --> S_API
-    L_API --> L_DB
-    L_API --> L_OUT
-    L_OUT -- "publica evento com tenantId" --> MQ
-    MQ -- "consome evento" --> S_CONSUMER
-    S_CONSUMER --> S_DB
-    S_API --> S_CACHE
-    S_API --> S_DB
-```
+![Diagrama de Contêineres](./img/DiagramadeConteineres.png)
 
 ## Fluxo Ponta a Ponta — Registrar Lançamento até a Conciliação
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Cliente
-    participant IdP as IdP / Auth Server
-    participant WAF as WAF / Firewall
-    participant LB as Load Balancer
-    participant LAPI as MS Lançamentos<br/>(com Outbox)
-    participant LDB as PostgreSQL<br/>Lançamentos
-    participant MQ as Broker Queue
-    participant CAPI as MS Consolidado<br/>Diário
-    participant CDB as PostgreSQL<br/>Consolidado
-
-    Cliente->>IdP: 1. autentica-se e obtém JWT
-    IdP-->>Cliente: 2. access token
-    Cliente->>WAF: 3. HTTPS + JWT
-    WAF->>LB: 4. valida e encaminha requisição
-    LB->>LAPI: 5. POST /lancamentos
-
-    LAPI->>LAPI: 6. valida claims do token (tenantId, clientId, scope)
-    LAPI->>LDB: 7. grava lançamento + evento de outbox<br/>(mesma transação)
-    LAPI-->>Cliente: 8. 201 Created
-
-    Note over LAPI: [Background Assíncrono]<br/>Publisher do Outbox lê pendentes
-    LAPI->>MQ: 9. publica evento de lançamento<br/>(assíncrono, marca como enviado)
-
-    MQ-->>CAPI: 10. entrega evento de lançamento
-
-    CAPI->>CAPI: 11. verifica eventId/idempotencyKey
-    CAPI->>CDB: 12. valida tenantId e aplica regra<br/>de conciliação
-    CAPI->>CDB: 13. atualiza saldo diário / upsert do dia
-
-    Note over CAPI,CDB: 14. se o evento já foi processado, ignora duplicata
-    Note over LAPI, CAPI: 15. os serviços continuam desacoplados; falha do consumidor não bloqueia a API
-```
+![Fluxo Ponta a Ponta — Registrar Lançamento até a Conciliação](./img/FluxoPontaaPonta.png)
 
 ### Interpretação do fluxo
 
@@ -213,6 +138,8 @@ sequenceDiagram
   em relação ao original.
 - O Consolidado Diário interpreta esse evento como reversão contábil do impacto
   financeiro do lançamento anterior, mantendo a consistência do saldo diário.
+
+![Lançamentos — Diagrama de Sequência](./img/LançamentosDiagramaSequencia01.png)
 
 ## Decisões-chave (rastreabilidade para os ADRs)
 
