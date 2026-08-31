@@ -39,7 +39,8 @@ class RegistrarLancamentoUseCaseImplTest {
             new BigDecimal("150.50"),
             LocalDate.of(2026, 8, 30),
             "Compra de materiais",
-            "Despesas"
+            "Despesas",
+            "usuario-123"
         );
 
         Lancamento saved = useCase.registrar(command);
@@ -52,11 +53,14 @@ class RegistrarLancamentoUseCaseImplTest {
         assertThat(saved.data()).isEqualTo(LocalDate.of(2026, 8, 30));
         assertThat(saved.descricao()).isEqualTo("Compra de materiais");
         assertThat(saved.categoria()).isEqualTo("Despesas");
+        assertThat(saved.usuarioId()).isEqualTo("usuario-123");
         assertThat(saved.status()).isEqualTo(StatusLancamento.ATIVO);
+        assertThat(saved.idempotencyKey()).isNotBlank();
         assertThat(repository.saved).hasSize(1);
         assertThat(repository.saved.get(0)).isEqualTo(saved);
         assertThat(repository.outboxEvents).hasSize(1);
         assertThat(repository.outboxEvents.get(0).idempotencyKey()).isNotBlank();
+        assertThat(repository.outboxEvents.get(0).idempotencyKey()).isEqualTo(saved.idempotencyKey());
     }
 
     @Test
@@ -66,7 +70,8 @@ class RegistrarLancamentoUseCaseImplTest {
             new BigDecimal("250.00"),
             LocalDate.of(2026, 8, 31),
             "Receita do cliente",
-            "Receitas"
+            "Receitas",
+            "usuario-456"
         );
 
         Lancamento saved = useCase.registrar(command);

@@ -15,4 +15,5 @@ C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\main\java\com\ve
 C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\main\java\com\verity\controlefinanceiro\infrastructure\adapter\in\web\GlobalExceptionHandler.java
 C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\main\java\com\verity\controlefinanceiro\infrastructure\adapter\in\web\LancamentoController.java
 C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\main\java\com\verity\controlefinanceiro\infrastructure\adapter\out\persistence\InMemoryLancamentoRepository.java
+C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\main\java\com\verity\controlefinanceiro\infrastructure\config\SecurityConfig.java
 C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\main\java\com\verity\controlefinanceiro\infrastructure\config\UseCaseConfiguration.java

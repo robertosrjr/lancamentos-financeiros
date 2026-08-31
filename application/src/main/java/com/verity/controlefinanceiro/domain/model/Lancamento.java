@@ -10,6 +10,8 @@ public class Lancamento {
     private final LocalDate data;
     private final String descricao;
     private final String categoria;
+    private final String usuarioId;
+    private final String idempotencyKey;
     private StatusLancamento status;
     private final UUID lancamentoOrigemId;
 
@@ -21,7 +23,7 @@ public class Lancamento {
         String descricao,
         String categoria
     ) {
-        this(id, tipo, valor, data, descricao, categoria, StatusLancamento.ATIVO, null);
+        this(id, tipo, valor, data, descricao, categoria, null, StatusLancamento.ATIVO, null, null);
     }
 
     public Lancamento(
@@ -31,8 +33,24 @@ public class Lancamento {
         LocalDate data,
         String descricao,
         String categoria,
+        String usuarioId,
         StatusLancamento status,
         UUID lancamentoOrigemId
+    ) {
+        this(id, tipo, valor, data, descricao, categoria, usuarioId, status, lancamentoOrigemId, null);
+    }
+
+    public Lancamento(
+        UUID id,
+        TipoLancamento tipo,
+        Money valor,
+        LocalDate data,
+        String descricao,
+        String categoria,
+        String usuarioId,
+        StatusLancamento status,
+        UUID lancamentoOrigemId,
+        String idempotencyKey
     ) {
         if (tipo == null) {
             throw new IllegalArgumentException("Tipo do lançamento é obrigatório");
@@ -56,8 +74,12 @@ public class Lancamento {
         this.data = data;
         this.descricao = descricao;
         this.categoria = categoria;
+        this.usuarioId = usuarioId;
         this.status = status == null ? StatusLancamento.ATIVO : status;
         this.lancamentoOrigemId = lancamentoOrigemId;
+        this.idempotencyKey = idempotencyKey == null || idempotencyKey.isBlank()
+            ? UUID.randomUUID().toString()
+            : idempotencyKey;
     }
 
     public Lancamento estornar() {
@@ -79,8 +101,10 @@ public class Lancamento {
             LocalDate.now(),
             "Estorno de " + this.descricao,
             this.categoria,
+            this.usuarioId,
             StatusLancamento.ATIVO,
-            this.id
+            this.id,
+            null
         );
     }
 
@@ -112,11 +136,19 @@ public class Lancamento {
         return categoria;
     }
 
+    public String usuarioId() {
+        return usuarioId;
+    }
+
     public StatusLancamento status() {
         return status;
     }
 
     public UUID lancamentoOrigemId() {
         return lancamentoOrigemId;
+    }
+
+    public String idempotencyKey() {
+        return idempotencyKey;
     }
 }

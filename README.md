@@ -99,7 +99,10 @@ A ideia central é manter a cadeia de rastreabilidade entre requisito, projeto, 
 - [ARCHITECTURE/adr/ADR-002-mensageria.md](ARCHITECTURE/adr/ADR-002-mensageria.md)
 - [ARCHITECTURE/adr/ADR-004-persistencia.md](ARCHITECTURE/adr/ADR-004-persistencia.md)
 - [ARCHITECTURE/adr/ADR-005-consistencia-outbox.md](ARCHITECTURE/adr/ADR-005-consistencia-outbox.md)
+- [ARCHITECTURE/adr/ADR-008-resiliencia-filas-retry.md](ARCHITECTURE/adr/ADR-008-resiliencia-filas-retry.md)
+- [ARCHITECTURE/filas_retry_dlq.md](ARCHITECTURE/filas_retry_dlq.md)
 - [ARCHITECTURE/observabilidade.md](ARCHITECTURE/observabilidade.md)
+- [ARCHITECTURE/operacao_monitoramento.md](ARCHITECTURE/operacao_monitoramento.md)
 - [ARCHITECTURE/seguranca_integracao.md](ARCHITECTURE/seguranca_integracao.md)
 - [ARCHITECTURE/estimativa_custos.md](ARCHITECTURE/estimativa_custos.md)
 
@@ -115,6 +118,7 @@ A solução foi pensada como duas capacidades principais:
 1. Lançamentos
    - persistência de movimentos financeiros
    - regras de validação e estorno
+   - chave de idempotência no domínio e no outbox
    - publicação de eventos para desacoplamento
 
 2. Consolidado Diário
@@ -158,8 +162,32 @@ A configuração atual inclui H2 em memória para simular um ambiente PostgreSQL
 - desacoplamento entre serviços por eventos assíncronos
 - uso de outbox para preservar consistência entre persistência e publicação
 - tratamento de idempotência por chave derivada do payload do evento
+- persistência da chave de idempotência também no próprio `Lancamento` para deduplicação do registro e reprocessamento seguro
 - foco em disponibilidade do serviço de lançamentos mesmo com falhas do serviço de consolidação
+- política de retry, backoff exponencial, jitter e DLQ para resiliência do consumidor
+- ordenação de processamento por chave de cliente para preservar consistência da sequência de eventos
+- observabilidade estruturada em pilares de logs, métricas e tracing distribuído
 - documentação formal de padrões e trade-offs em ADRs
+
+## Pilares de observabilidade
+
+A observabilidade do sistema foi pensada em três pilares complementares:
+
+### 1. Logs
+- registros estruturados do fluxo de lançamento e do processamento de eventos
+- correlação por `correlationId`, `tenantId` e `clientId`
+- rastreio de falhas de autenticação, publicação e consumo de eventos
+
+### 2. Métricas
+- contadores de lançamentos, estornos e eventos processados
+- gauges para fila de outbox e latência da API
+- indicadores de vazão, erros e hit ratio do cache
+
+### 3. Tracing distribuído
+- correlação do ciclo completo desde a requisição até a publicação e consumo do evento
+- suporte à análise de latência, gargalo e falha em cada etapa do fluxo
+
+A visão completa está em [ARCHITECTURE/observabilidade.md](ARCHITECTURE/observabilidade.md).
 
 ## Status do projeto
 

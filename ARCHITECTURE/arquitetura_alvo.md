@@ -23,40 +23,47 @@ Rel(lancamentos, consolidado, "Publica eventos de lançamento", "Evento assíncr
 
 - O cliente autentica-se em um Provedor de Identidade (IdP) externo, que emite
   um token JWT.
-- O token carrega um `client_id` e, no MVP, também um `tenantId` lógico do
-  comerciante/cliente. Esse identificador é usado para controlar tráfego,
+- O token carrega `client_id` e, no MVP, também um `tenantId` lógico do
+  comerciante/cliente. Esse identificador é usado para controle de tráfego,
   segmentação de acesso e isolamento lógico dos dados, mesmo com um único
   cliente ativo no escopo atual.
 - As requisições REST autenticadas passam por firewall/WAF na borda e chegam a
-  um Load Balancer, que distribui o tráfego de forma balanceada para os serviços.
-- O tráfego de entrada é validado pelo IdP antes de permitir acesso aos
-  endpoints de negócio.
+  um Load Balancer ou API Gateway, que distribui o tráfego de forma balanceada
+  para os serviços.
+- O tráfego de entrada é validado pelo IdP e pela borda antes de permitir acesso
+  aos endpoints de negócio.
 
 ### Rede e isolamento
 
 - Todo o ecossistema roda dentro de uma Virtual Private Cloud (VPC), em uma
   região específica.
 - Os microsserviços Lançamentos e Consolidado Diário ficam em sub-redes privadas,
-  isoladas por zona de disponibilidade para reduzir risco de falha em um único
-  ponto.
+  isoladas por zona de disponibilidade (AZ-A e AZ-B), reduzindo o risco de falha
+  em um único ponto.
 - A comunicação entre cliente e serviços ocorre exclusivamente via ingress
   controlado; não há exposição direta de bancos ou broker para a internet.
 
 ### Mensageria (desacoplamento)
 
-- A comunicação interna entre os microsserviços é mediada por um Broker Queue
-  (ex.: Amazon MQ / RabbitMQ), seguindo o padrão assíncrono orientado a
-  eventos.
-- Os eventos de domínio saem do serviço de Lançamentos e são consumidos
-  de forma idempotente pelo Consolidado Diário.
+- A comunicação interna entre os microsserviços é mediada por um broker de
+  mensagens seguindo o padrão assíncrono orientado a eventos.
+- Para o PoC e ambiente local, o desenho usa RabbitMQ; para a referência em
+  nuvem, a decisão mapeada é SNS + SQS (ADR-002 e ADR-003).
+- Os eventos de domínio saem do serviço de Lançamentos e são consumidos de
+  forma idempotente pelo Consolidado Diário.
 
 ### Persistência de dados (CQRS de infraestrutura)
 
-- O modelo usa topologia primária/secundária com replicação entre AZs.
+- Cada serviço tem seu próprio banco PostgreSQL, conforme decisão do ADR-004.
+- No desenho de alta disponibilidade, cada banco usa topologia primária/
+  secundária dentro da própria zona de isolamento do serviço: o banco primário
+  fica na AZ-A e a réplica de leitura fica na AZ-B.
 - Todas as operações de escrita dos microsserviços são direcionadas ao banco
   primário da AZ-A.
 - Todas as operações de leitura são roteadas para a réplica secundária da AZ-B,
   aliviando o banco transacional principal e melhorando a escala de leitura.
+- Essa topologia é aplicada por serviço, não em um banco compartilhado entre
+  Lançamentos e Consolidado Diário.
 
 ### Identidade do cliente e isolamento lógico
 

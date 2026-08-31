@@ -4,6 +4,14 @@
 
 ## Pilares
 
+Os três pilares da observabilidade são:
+
+1. **Logs** — responder: o que aconteceu?
+2. **Métricas** — responder: quão frequentemente e quão rápido aconteceu?
+3. **Tracing distribuído** — responder: em qual etapa do fluxo a requisição ou evento ficou preso?
+
+Juntos, esses pilares permitem diagnósticos rápidos, operação segura e validação de comportamento em produção.
+
 ### Logs
 - Logs estruturados em JSON (ex.: Logback com encoder JSON) em ambos os
   serviços, incluindo `correlationId`, `tenantId` e `client_id` no contexto do

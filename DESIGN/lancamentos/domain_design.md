@@ -15,6 +15,7 @@
 | `data` | LocalDate | não pode ser futura |
 | `descricao` | String | obrigatória, curta |
 | `categoria` | String | opcional |
+| `idempotencyKey` | String | hash SHA-256 do payload do lançamento; garante deduplicação e reprocessamento seguro |
 | `status` | `StatusLancamento` (ATIVO \| ESTORNADO) | inicia ATIVO |
 | `lancamentoOrigemId` | UUID (nullable) | preenchido quando este lançamento é um estorno de outro |
 | `criadoEm` | Instant | timestamp de auditoria |
@@ -42,13 +43,15 @@
 
 ### Domain Events
 
-- `LancamentoRegistrado { eventId, lancamentoId, tipo, valor, data, ocorreuEm }`
-- `LancamentoEstornado { eventId, lancamentoId, lancamentoOrigemId, tipo, valor, data, ocorreuEm }`
+- `LancamentoRegistrado { eventId, lancamentoId, tipo, valor, data, ocorreuEm, idempotencyKey }`
+- `LancamentoEstornado { eventId, lancamentoId, lancamentoOrigemId, tipo, valor, data, ocorreuEm, idempotencyKey }`
 
-Ambos publicados via **padrão Outbox** (gravados na mesma transação do
-lançamento, publicados depois por um processo assíncrono) — ver ADR-005. Isso
-garante que a Unit Consolidado Diário nunca precise ser chamada de forma
-síncrona, atendendo ao NFR01.
+A chave `idempotencyKey` é derivada do payload do evento usando SHA-256 e é
+reutilizada no próprio `Lancamento` para permitir deduplicação de requisições e
+reprocessamento seguro. Ambos os eventos são publicados via **padrão Outbox**
+(gravados na mesma transação do lançamento, publicados depois por um processo
+assíncrono) — ver ADR-005. Isso garante que a Unit Consolidado Diário nunca
+precise ser chamada de forma síncrona, atendendo ao NFR01.
 
 ### Repository
 

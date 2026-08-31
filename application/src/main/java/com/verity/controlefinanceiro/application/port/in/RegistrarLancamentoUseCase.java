@@ -14,6 +14,7 @@ public interface RegistrarLancamentoUseCase {
         BigDecimal valor,
         LocalDate data,
         String descricao,
-        String categoria
+        String categoria,
+        String usuarioId
     ) {}
 }

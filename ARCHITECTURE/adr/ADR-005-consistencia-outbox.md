@@ -36,9 +36,10 @@ sistemas distribuídos (registrados como R01/R03 em
    Um processo separado publica as linhas pendentes no RabbitMQ e marca como
    publicadas (retry automático em caso de falha de publicação).
 2. **Lado consumidor (Consolidado Diário)**: Idempotent Consumer. Cada evento
-   carrega um `eventId` único; antes de aplicar o efeito no `SaldoDiario`, o
-   consumidor verifica a tabela `evento_processado`. Se já processado,
-   descarta silenciosamente (log de auditoria, sem erro).
+   carrega um `eventId` único e uma `idempotencyKey` derivada do payload pelo
+   produtor; antes de aplicar o efeito no `SaldoDiario`, o consumidor verifica
+   a tabela `evento_processado`. Se já processado, descarta silenciosamente (log
+   de auditoria, sem erro).
 
 ## Consequências
 
@@ -48,6 +49,12 @@ sistemas distribuídos (registrados como R01/R03 em
   possível **reprocessar todo o histórico de eventos** (replay) para reconstruir
   a projeção do zero — capacidade explicitamente prevista no Domain Design do
   Consolidado Diário.
+- O processador deve implementar retries controlados com backoff exponencial e
+  jitter; quando a falha persistir, a mensagem vai para DLQ para não bloquear o
+  fluxo principal.
+- O consumo deve ser feito preferencialmente em lotes, porém sempre agrupados
+  por chave de cliente para preservar ordem e consistência ao mesmo tempo em que
+  se mantém throughput.
 - Custo: uma tabela extra por serviço e um processo de publicação assíncrona
   (implementável com `@Scheduled` no MVP; evolução futura para Debezium se o
   volume justificar).

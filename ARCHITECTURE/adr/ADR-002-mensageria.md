@@ -50,3 +50,7 @@ esse exchange.
 - Consumidor implementa idempotência (ADR-005) independente da tecnologia de
   broker, o que mantém a decisão portável para SQS/SNS sem reescrever a lógica
   de negócio.
+- A fila e o consumidor devem seguir política explícita de retry, DLQ, backoff
+  exponencial e jitter para garantir resiliência sem amplificar picos de carga.
+- A ordem de processamento deve ser preservada por chave de cliente, conforme
+  explicado em `ARCHITECTURE/filas_retry_dlq.md`.

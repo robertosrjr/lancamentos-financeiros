@@ -35,6 +35,10 @@ separados, mesmo em produção — "database per service"):
 - `consolidado_db`: tabela `saldo_diario` + tabela `evento_processado`
   (controle de idempotência, ADR-005).
 
+Em alta disponibilidade, cada banco segue a topologia `primary/secondary` por
+serviço: o primário fica na AZ-A e a réplica de leitura na AZ-B. A leitura é
+roteada para a réplica, enquanto a escrita continua concentrada no primário.
+
 Valores monetários usam `NUMERIC(19,2)` (nunca `FLOAT`/`DOUBLE`), consistente
 com o Value Object `Money` do Domain Design.
 

@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.security.Principal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -34,14 +35,17 @@ public class LancamentoController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public LancamentoResponse registrar(@Valid @RequestBody LancamentoRequest request) {
+    public LancamentoResponse registrar(@Valid @RequestBody LancamentoRequest request, Principal principal) {
+        String usuarioId = principal == null ? "anonymous" : principal.getName();
+
         Lancamento lancamento = registrarLancamentoUseCase.registrar(
             new RegistrarLancamentoUseCase.RegistrarLancamentoCommand(
                 request.tipo(),
                 request.valor(),
                 request.data(),
                 request.descricao(),
-                request.categoria()
+                request.categoria(),
+                usuarioId
             )
         );
 
@@ -81,6 +85,7 @@ public class LancamentoController {
         LocalDate data,
         String descricao,
         String categoria,
+        String usuarioId,
         String status,
         UUID lancamentoOrigemId
     ) {
@@ -92,6 +97,7 @@ public class LancamentoController {
                 lancamento.data(),
                 lancamento.descricao(),
                 lancamento.categoria(),
+                lancamento.usuarioId(),
                 lancamento.status().name(),
                 lancamento.lancamentoOrigemId()
             );

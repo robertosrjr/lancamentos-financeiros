@@ -18,6 +18,9 @@ infraestrutura.
   porta do seu próprio banco e do broker — nenhuma comunicação direta
   Lançamentos ↔ Consolidado Diário é permitida na rede (reforça, na camada de
   infraestrutura, o desacoplamento decidido no ADR-001).
+- A topologia de AZs é aplicada por serviço. Ou seja, cada serviço possui sua
+  própria primary/secondary, na mesma lógica de failover e leitura em réplica,
+  e não um único banco compartilhado do ecossistema.
 
 ## Identidade do cliente e isolamento lógico
 - Mesmo no MVP single-tenant, o cliente possui um `client_id`/`tenantId` lógico

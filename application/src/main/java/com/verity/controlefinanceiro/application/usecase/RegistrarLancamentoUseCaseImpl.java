@@ -25,26 +25,30 @@ public class RegistrarLancamentoUseCaseImpl implements RegistrarLancamentoUseCas
     public Lancamento registrar(RegistrarLancamentoCommand command) {
         Money money = new Money(command.valor(), Currency.getInstance("BRL"));
 
+        String payload = String.format(
+            "{\"tipo\":\"%s\",\"valor\":\"%s\",\"data\":\"%s\",\"descricao\":\"%s\",\"categoria\":\"%s\"}",
+            command.tipo(),
+            command.valor(),
+            command.data(),
+            command.descricao(),
+            command.categoria() == null ? "" : command.categoria()
+        );
+        String idempotencyKey = hash(payload);
+
         Lancamento lancamento = new Lancamento(
             UUID.randomUUID(),
             command.tipo(),
             money,
             command.data(),
             command.descricao(),
-            command.categoria()
+            command.categoria(),
+            command.usuarioId(),
+            StatusLancamento.ATIVO,
+            null,
+            idempotencyKey
         );
 
         Lancamento saved = repository.save(lancamento);
-        String payload = String.format(
-            "{\"lancamentoId\":\"%s\",\"tipo\":\"%s\",\"valor\":\"%s\",\"data\":\"%s\",\"descricao\":\"%s\",\"categoria\":\"%s\"}",
-            saved.id(),
-            saved.tipo(),
-            saved.valor().amount(),
-            saved.data(),
-            saved.descricao(),
-            saved.categoria() == null ? "" : saved.categoria()
-        );
-        String idempotencyKey = hash(payload);
 
         repository.saveOutboxEvent(OutboxEvent.create(
             saved.id(),
