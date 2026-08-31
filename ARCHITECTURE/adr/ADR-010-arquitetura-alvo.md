@@ -7,10 +7,34 @@
 
 A solução proposta foi concebida a partir de um conjunto de premissas de negócio
  e de engenharia que orientaram a definição da arquitetura e dos padrões de
-integração adotados. Essas premissas têm como objetivo preservar a coerência entre
-requisitos funcionais, requisitos não funcionais, resiliência operacional e
-simplicidade de implementação, sem introduzir complexidade desnecessária no ciclo
-inicial do projeto.
+integração adotados. Essas premissas preservam a coerência entre requisitos
+funcionais, requisitos não funcionais, resiliência operacional e simplicidade de
+implementação, sem introduzir complexidade desnecessária no ciclo inicial do
+projeto.
+
+## Ordem de prioridade das decisões arquiteturais
+
+A sequência abaixo representa a prioridade metodológica das decisões que compõem
+ a arquitetura alvo:
+
+1. ADR-001 — Padrão arquitetural: serviços desacoplados com comunicação
+   assíncrona.
+2. ADR-007 — Segurança de acesso: OAuth2/JWT com Authorization Server.
+3. ADR-004 — Persistência: PostgreSQL por serviço.
+4. ADR-002 — Mensageria: RabbitMQ local, SNS/SQS em produção.
+5. ADR-005 — Consistência entre serviços: Transactional Outbox + Idempotent
+   Consumer.
+6. ADR-006 — Cache e resiliência para pico de carga.
+7. ADR-008 — Resiliência em filas: retry, DLQ, backoff, jitter e ordenação por
+   cliente.
+8. ADR-003 — Provedor de nuvem: AWS como referência.
+9. ADR-009 — Fronteira de entrada: API Gateway sem BFF obrigatório.
+10. ADR-010 — Arquitetura alvo e premissas e considerações adotadas.
+
+Essa ordem reflete a dependência lógica entre decisões: primeiro a forma de
+organizar os serviços, depois a segurança, persistência, troca de mensagens,
+consistência, desempenho e, por fim, as decisões de operação, nuvem e fronteira
+ de entrada.
 
 ## Premissas de negócio
 

@@ -95,16 +95,34 @@ A ideia central é manter a cadeia de rastreabilidade entre requisito, projeto, 
 ### Arquitetura e decisão
 
 - [ARCHITECTURE/arquitetura_alvo.md](ARCHITECTURE/arquitetura_alvo.md)
+- [ARCHITECTURE/adr/ADR-010-arquitetura-alvo.md](ARCHITECTURE/adr/ADR-010-arquitetura-alvo.md)
 - [ARCHITECTURE/adr/ADR-001-padrao-arquitetural.md](ARCHITECTURE/adr/ADR-001-padrao-arquitetural.md)
-- [ARCHITECTURE/adr/ADR-002-mensageria.md](ARCHITECTURE/adr/ADR-002-mensageria.md)
+- [ARCHITECTURE/adr/ADR-007-seguranca-acesso.md](ARCHITECTURE/adr/ADR-007-seguranca-acesso.md)
 - [ARCHITECTURE/adr/ADR-004-persistencia.md](ARCHITECTURE/adr/ADR-004-persistencia.md)
+- [ARCHITECTURE/adr/ADR-002-mensageria.md](ARCHITECTURE/adr/ADR-002-mensageria.md)
 - [ARCHITECTURE/adr/ADR-005-consistencia-outbox.md](ARCHITECTURE/adr/ADR-005-consistencia-outbox.md)
+- [ARCHITECTURE/adr/ADR-006-cache-resiliencia.md](ARCHITECTURE/adr/ADR-006-cache-resiliencia.md)
 - [ARCHITECTURE/adr/ADR-008-resiliencia-filas-retry.md](ARCHITECTURE/adr/ADR-008-resiliencia-filas-retry.md)
+- [ARCHITECTURE/adr/ADR-003-provedor-nuvem.md](ARCHITECTURE/adr/ADR-003-provedor-nuvem.md)
+- [ARCHITECTURE/adr/ADR-009-bff-edge-api.md](ARCHITECTURE/adr/ADR-009-bff-edge-api.md)
 - [ARCHITECTURE/filas_retry_dlq.md](ARCHITECTURE/filas_retry_dlq.md)
 - [ARCHITECTURE/observabilidade.md](ARCHITECTURE/observabilidade.md)
 - [ARCHITECTURE/operacao_monitoramento.md](ARCHITECTURE/operacao_monitoramento.md)
 - [ARCHITECTURE/seguranca_integracao.md](ARCHITECTURE/seguranca_integracao.md)
 - [ARCHITECTURE/estimativa_custos.md](ARCHITECTURE/estimativa_custos.md)
+
+### Ordem de prioridade dos ADRs
+
+1. ADR-001 — Padrão arquitetural
+2. ADR-007 — Segurança de acesso
+3. ADR-004 — Persistência
+4. ADR-002 — Mensageria
+5. ADR-005 — Consistência por outbox
+6. ADR-006 — Cache e resiliência
+7. ADR-008 — Retry, DLQ e ordenação por cliente
+8. ADR-003 — Provedor de nuvem
+9. ADR-009 — Fronteira de entrada e BFF
+10. ADR-010 — Arquitetura alvo e premissas
 
 ### Código da aplicação
 
