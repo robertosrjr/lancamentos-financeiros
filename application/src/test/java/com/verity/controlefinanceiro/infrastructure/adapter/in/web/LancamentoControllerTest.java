@@ -7,11 +7,11 @@ import com.verity.controlefinanceiro.domain.model.Lancamento;
 import com.verity.controlefinanceiro.domain.model.Money;
 import com.verity.controlefinanceiro.domain.model.StatusLancamento;
 import com.verity.controlefinanceiro.domain.model.TipoLancamento;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -20,25 +20,33 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 class LancamentoControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
-
-    @MockitoBean
     private RegistrarLancamentoUseCase registrarLancamentoUseCase;
-
-    @MockitoBean
     private ConsultarLancamentosUseCase consultarLancamentosUseCase;
-
-    @MockitoBean
     private EstornarLancamentoUseCase estornarLancamentoUseCase;
+
+    @BeforeEach
+    void setUp() {
+        registrarLancamentoUseCase = mock(RegistrarLancamentoUseCase.class);
+        consultarLancamentosUseCase = mock(ConsultarLancamentosUseCase.class);
+        estornarLancamentoUseCase = mock(EstornarLancamentoUseCase.class);
+
+        mockMvc = MockMvcBuilders.standaloneSetup(
+            new LancamentoController(
+                registrarLancamentoUseCase,
+                consultarLancamentosUseCase,
+                estornarLancamentoUseCase
+            )
+        ).build();
+    }
 
     @Test
     void should_create_lancamento() throws Exception {

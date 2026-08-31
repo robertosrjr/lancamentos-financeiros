@@ -7,6 +7,8 @@ Este projeto é uma solução de referência para o desafio de arquitetura de so
 - controle de lançamentos financeiros (débito e crédito)
 - consolidação diária do saldo por dia
 
+> Observação: neste momento, a implementação foi entregue apenas para o caso de uso de Lançamentos. A parte de consolidação diária permanece como desenho e visão arquitetural de referência, e não como funcionalidade completa implementada neste repositório.
+
 O objetivo é demonstrar, de forma prática e documentada, como transformar requisitos de negócio em uma arquitetura coerente, com isolamento de falhas, observabilidade, segurança e documentação de decisão.
 
 ## Objetivo do negócio
@@ -19,6 +21,8 @@ Permitir que um comerciante:
 - leia um saldo diário consolidado sem que o serviço de lançamentos fique dependente do serviço de consolidação
 
 ## Requisitos atendidos
+
+> Observação: a implementação atual deste repositório cobre o caso de uso de Lançamentos. A funcionalidade de consolidação diária está documentada como parte da arquitetura e do desenho da solução, mas ainda não foi entregue como implementação completa no código atual.
 
 Este projeto foi organizado para cobrir os requisitos do documento de desafio e da metodologia aplicada:
 
@@ -162,6 +166,12 @@ cd application
 mvn spring-boot:run
 ```
 
+### Swagger UI
+
+Após iniciar a aplicação, o endpoint da documentação interativa está em:
+
+- http://localhost:8080/swagger-ui/index.html
+
 ### Testes
 
 ```bash
@@ -174,6 +184,10 @@ mvn test
 A configuração atual inclui H2 em memória para simular um ambiente PostgreSQL em desenvolvimento, com console disponível em:
 
 - http://localhost:8080/h2-console
+
+### Autenticação da aplicação
+
+Como esse projeto não define um usuário/password customizado, o Spring Boot usa a autenticação padrão do Spring Security: o usuário é `user` e a senha é gerada automaticamente no console ao iniciar a aplicação. Essa solicitação não é do banco H2, e sim da camada de segurança HTTP Basic da aplicação.
 
 ## Decisões-chave de arquitetura
 

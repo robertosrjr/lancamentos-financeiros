@@ -14,17 +14,17 @@ import org.springframework.context.annotation.Configuration;
 public class UseCaseConfiguration {
 
     @Bean
-    RegistrarLancamentoUseCase registrarLancamentoUseCase(LancamentoRepository repository) {
+    public RegistrarLancamentoUseCase registrarLancamentoUseCase(LancamentoRepository repository) {
         return new RegistrarLancamentoUseCaseImpl(repository);
     }
 
     @Bean
-    ConsultarLancamentosUseCase consultarLancamentosUseCase(LancamentoRepository repository) {
+    public ConsultarLancamentosUseCase consultarLancamentosUseCase(LancamentoRepository repository) {
         return new ConsultarLancamentosUseCaseImpl(repository);
     }
 
     @Bean
-    EstornarLancamentoUseCase estornarLancamentoUseCase(LancamentoRepository repository) {
+    public EstornarLancamentoUseCase estornarLancamentoUseCase(LancamentoRepository repository) {
         return new EstornarLancamentoUseCaseImpl(repository);
     }
 }

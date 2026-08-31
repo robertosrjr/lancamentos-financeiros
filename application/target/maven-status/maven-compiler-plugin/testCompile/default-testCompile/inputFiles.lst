@@ -1,5 +1,8 @@
 C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\test\java\com\verity\controlefinanceiro\application\usecase\ConsultarLancamentosUseCaseImplTest.java
 C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\test\java\com\verity\controlefinanceiro\application\usecase\EstornarLancamentoUseCaseImplTest.java
 C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\test\java\com\verity\controlefinanceiro\application\usecase\RegistrarLancamentoUseCaseImplTest.java
+C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\test\java\com\verity\controlefinanceiro\application\usecase\UseCaseConfigurationTest.java
 C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\test\java\com\verity\controlefinanceiro\domain\model\LancamentoTest.java
+C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\test\java\com\verity\controlefinanceiro\infrastructure\adapter\in\web\GlobalExceptionHandlerTest.java
 C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\test\java\com\verity\controlefinanceiro\infrastructure\adapter\in\web\LancamentoControllerTest.java
+C:\Developer\Desafios\Verity\ControleFinanceiro\application\src\test\java\com\verity\controlefinanceiro\infrastructure\adapter\out\persistence\InMemoryLancamentoRepositoryTest.java

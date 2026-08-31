@@ -2,6 +2,7 @@ package com.verity.controlefinanceiro.application.usecase;
 
 import com.verity.controlefinanceiro.application.port.in.RegistrarLancamentoUseCase.RegistrarLancamentoCommand;
 import com.verity.controlefinanceiro.application.port.out.LancamentoRepository;
+import com.verity.controlefinanceiro.application.port.out.OutboxEvent;
 import com.verity.controlefinanceiro.domain.model.Lancamento;
 import com.verity.controlefinanceiro.domain.model.Money;
 import com.verity.controlefinanceiro.domain.model.StatusLancamento;
