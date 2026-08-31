@@ -112,9 +112,26 @@ Toda operação deve possuir:
 - `ERROR`: falha final, erro inaceitável, mensagem em DLQ
 - `DEBUG`: detalhes de diagnóstico somente em ambientes de desenvolvimento ou depuração
 
-### 2.3 Retenção
+### 2.3 Retenção e expurgo
 
-Os logs e métricas devem ser retidos por período suficiente para diagnóstico operacional, mas com política clara de arquivamento. A retenção deve respeitar regras de conformidade e custo.
+Os logs, métricas, eventos de auditoria e artefatos de suporte devem ser retidos por período suficiente para diagnóstico operacional, mas com política clara de arquivamento e expurgo. A retenção deve respeitar regras de conformidade, custo e necessidade de investigação.
+
+Para dados e artefatos de menor custo operacional, a arquitetura recomenda o uso de **S3** com ciclo de vida:
+
+- transição para classes mais baratas após 30 a 90 dias;
+- arquivamento em camadas mais econômicas após período definido;
+- expurgo automático ao fim do período de retenção obrigatório;
+- registro do expurgo e do motivo da exclusão para manter trilha de auditoria.
+
+Em outras palavras, o sistema deve definir explicitamente:
+
+- o que é retido;
+- por quanto tempo;
+- em qual camada de armazenamento;
+- quando é expurgado;
+- quem ou qual processo valida esse expurgo.
+
+Essa política é essencial para garantir governança, redução de custo e conformidade, sem perder capacidade de diagnóstico.
 
 ## 3. Alertas recomendados
 

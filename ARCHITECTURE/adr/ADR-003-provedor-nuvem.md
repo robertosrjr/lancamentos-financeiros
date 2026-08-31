@@ -36,6 +36,18 @@ Adotar **AWS** como provedor de referência da Arquitetura Alvo, mapeando:
 | Segredos (credenciais de banco, API keys) | Secrets Manager |
 | Borda / proteção | API Gateway (rate limiting) + WAF |
 
+### Observação de arquitetura: BFF não é obrigatório
+
+- A arquitetura base usa **API Gateway + serviços de negócio** como camada de
+  entrada e proteção.
+- A decisão de introduzir um **BFF** é opcional e depende de necessidades de
+  experiência do cliente, agregação de dados e diferenciação de contratos
+  entre frontends.
+- Para o MVP e para o cenário atual do desafio, não há justificativa para
+  forçar um BFF; a complexidade adicional não traz valor proporcional.
+- O BFF somente entra como evolução quando existir mais de um tipo de cliente
+  com regras distintas de UX, composição ou autorização.
+
 ## Consequências
 
 - A estimativa de custos (diferencial) usa os preços destes serviços como

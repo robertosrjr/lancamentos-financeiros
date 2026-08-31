@@ -33,6 +33,21 @@ Rel(lancamentos, consolidado, "Publica eventos de lançamento", "Evento assíncr
 - O tráfego de entrada é validado pelo IdP e pela borda antes de permitir acesso
   aos endpoints de negócio.
 
+### Decisão explícita sobre BFF
+
+- O projeto não exige um BFF como requisito inicial. A camada de borda é
+  representada por um API Gateway / Load Balancer, e esse padrão é o padrão
+  recomendado para o MVP e para a arquitetura alvo deste desafio.
+- O BFF é uma evolução opcional e deve ser introduzido somente quando houver
+  múltiplos clientes com necessidades heterogêneas de contrato, payload,
+  autenticação, autorização ou experiência de usuário.
+- Em cenários com um único frontend ou com contratos de API padronizados,
+  manter uma API de negócio direta por trás do gateway reduz complexidade,
+  acelera entrega e preserva autonomia dos serviços.
+- Se, no futuro, surgirem web/mobile/admin com regras diferentes de agregação,
+  composição e segurança, o BFF pode ser adicionado como camada de adaptação
+  de cliente, sem quebrar a arquitetura base já definida.
+
 ### Rede e isolamento
 
 - Todo o ecossistema roda dentro de uma Virtual Private Cloud (VPC), em uma
@@ -123,25 +138,51 @@ flowchart LR
     S_API --> S_DB
 ```
 
-## Fluxo Ponta a Ponta — Registrar Lançamento e Refletir no Consolidado
+## Fluxo Ponta a Ponta — Registrar Lançamento até a Conciliação
 
 ```mermaid
 sequenceDiagram
+    autonumber
     participant Cliente
-    participant Lancamentos as Serviço Lançamentos
-    participant DB1 as PostgreSQL (lancamentos_db)
-    participant MQ as RabbitMQ
-    participant Consolidado as Serviço Consolidado Diário
-    participant DB2 as PostgreSQL (consolidado_db)
+    participant IdP as IdP / Auth Server
+    participant WAF as WAF / Firewall
+    participant LB as Load Balancer
+    participant LAPI as MS Lançamentos
+    participant LDB as PostgreSQL Lançamentos
+    participant O as Outbox
+    participant MQ as Broker Queue
+    participant CAPI as MS Consolidado Diário
+    participant CDB as PostgreSQL Consolidado
 
-    Cliente->>Lancamentos: POST /lancamentos (Bearer JWT com tenantId)
-    Lancamentos->>DB1: INSERT lancamento(tenantId) + INSERT outbox_evento(tenantId) (1 transação)
-    Lancamentos-->>Cliente: 201 Created
-    Lancamentos->>MQ: publica LancamentoRegistrado(tenantId) (assíncrono, via outbox poller)
-    MQ->>Consolidado: entrega evento
-    Consolidado->>DB2: valida tenantId, idempotência e recalcula SaldoDiario (upsert)
-    Note over Lancamentos,Consolidado: Nenhuma chamada síncrona entre os dois serviços.<br/>Se Consolidado estiver fora do ar, Lançamentos continua respondendo normalmente.
+    Cliente->>IdP: 1. autentica-se e obtém JWT
+    IdP-->>Cliente: 2. access token
+    Cliente->>WAF: 3. HTTPS + JWT
+    WAF->>LB: 4. valida e encaminha requisição
+    LB->>LAPI: 5. POST /lancamentos
+
+    LAPI->>LAPI: 6. valida claims do token (tenantId, clientId, scope)
+    LAPI->>LDB: 7. grava lançamento + chave de idempotência
+    LAPI->>O: 8. registra evento de outbox na mesma transação
+    LAPI-->>Cliente: 9. 201 Created
+
+    O->>MQ: 10. publisher lê evento pendente e publica mensagem
+    MQ-->>CAPI: 11. entrega evento de lançamento
+
+    CAPI->>CAPI: 12. verifica eventId/idempotencyKey
+    CAPI->>CDB: 13. valida tenantId e aplica regra de conciliação
+    CAPI->>CDB: 14. atualiza saldo diário / upsert do dia
+
+    Note over CAPI,CDB: 15. se o evento já foi processado, ignora duplicata
+    Note over LAPI, CAPI: 16. os serviços continuam desacoplados; falha do consumidor não bloqueia a API
 ```
+
+### Interpretação do fluxo
+
+- O cliente nunca envia o identificador do usuário como dado de negócio confiável; o identificador vem do token JWT validado na borda e no serviço.
+- O lançamento e o evento de outbox são persistidos na mesma transação para evitar o dual write.
+- O publisher assíncrono envia a mensagem para a fila, e o consumidor idempotente aplica a conciliação do saldo.
+- Se o mesmo evento chegar mais de uma vez, a chave de idempotência evita reprocessamento duplicado.
+- O resultado final é a conta financeira consistente, mesmo com comunicação assíncrona e falhas transitórias.
 
 ### Regra contábil do estorno aplicada no fluxo
 
