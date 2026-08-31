@@ -2,6 +2,10 @@
 
 **Consolida:** ADR-001, ADR-002, ADR-003, ADR-004, ADR-005, ADR-006, ADR-007, ADR-008, ADR-009, ADR-010, `DESIGN/lancamentos/`, `DESIGN/consolidado-diario/`
 
+## Desenho da Solução
+
+![Arquitetura Alvo - Controle de Fluxo de Caixa](./img/DesTecVerityArquSol_trad_v2V01.drawio.png)
+
 ## Diagrama de Contexto
 
 ```mermaid
