@@ -151,12 +151,11 @@ sequenceDiagram
     participant IdP as IdP / Auth Server
     participant WAF as WAF / Firewall
     participant LB as Load Balancer
-    participant LAPI as MS Lançamentos
-    participant LDB as PostgreSQL Lançamentos
-    participant O as Outbox
+    participant LAPI as MS Lançamentos<br/>(com Outbox)
+    participant LDB as PostgreSQL<br/>Lançamentos
     participant MQ as Broker Queue
-    participant CAPI as MS Consolidado Diário
-    participant CDB as PostgreSQL Consolidado
+    participant CAPI as MS Consolidado<br/>Diário
+    participant CDB as PostgreSQL<br/>Consolidado
 
     Cliente->>IdP: 1. autentica-se e obtém JWT
     IdP-->>Cliente: 2. access token
@@ -165,28 +164,47 @@ sequenceDiagram
     LB->>LAPI: 5. POST /lancamentos
 
     LAPI->>LAPI: 6. valida claims do token (tenantId, clientId, scope)
-    LAPI->>LDB: 7. grava lançamento + chave de idempotência
-    LAPI->>O: 8. registra evento de outbox na mesma transação
-    LAPI-->>Cliente: 9. 201 Created
+    LAPI->>LDB: 7. grava lançamento + evento de outbox<br/>(mesma transação)
+    LAPI-->>Cliente: 8. 201 Created
 
-    O->>MQ: 10. publisher lê evento pendente e publica mensagem
-    MQ-->>CAPI: 11. entrega evento de lançamento
+    Note over LAPI: [Background Assíncrono]<br/>Publisher do Outbox lê pendentes
+    LAPI->>MQ: 9. publica evento de lançamento<br/>(assíncrono, marca como enviado)
 
-    CAPI->>CAPI: 12. verifica eventId/idempotencyKey
-    CAPI->>CDB: 13. valida tenantId e aplica regra de conciliação
-    CAPI->>CDB: 14. atualiza saldo diário / upsert do dia
+    MQ-->>CAPI: 10. entrega evento de lançamento
 
-    Note over CAPI,CDB: 15. se o evento já foi processado, ignora duplicata
-    Note over LAPI, CAPI: 16. os serviços continuam desacoplados; falha do consumidor não bloqueia a API
+    CAPI->>CAPI: 11. verifica eventId/idempotencyKey
+    CAPI->>CDB: 12. valida tenantId e aplica regra<br/>de conciliação
+    CAPI->>CDB: 13. atualiza saldo diário / upsert do dia
+
+    Note over CAPI,CDB: 14. se o evento já foi processado, ignora duplicata
+    Note over LAPI, CAPI: 15. os serviços continuam desacoplados; falha do consumidor não bloqueia a API
 ```
 
 ### Interpretação do fluxo
 
 - O cliente nunca envia o identificador do usuário como dado de negócio confiável; o identificador vem do token JWT validado na borda e no serviço.
-- O lançamento e o evento de outbox são persistidos na mesma transação para evitar o dual write.
-- O publisher assíncrono envia a mensagem para a fila, e o consumidor idempotente aplica a conciliação do saldo.
-- Se o mesmo evento chegar mais de uma vez, a chave de idempotência evita reprocessamento duplicado.
+- **Passo 7**: O lançamento e o evento de outbox são persistidos **na mesma transação** (atomicidade garantida) para evitar o dual write.
+- **Passo 8**: A resposta é retornada imediatamente ao cliente (API não aguarda publicação da mensagem).
+- **Passo 9** (background assíncrono): Um publisher interno do serviço de Lançamentos lê a tabela de outbox, publica as mensagens pendentes no broker, e marca como enviado.
+- **Passos 10-13**: O Consolidado Diário consome a mensagem e aplica idempotência para evitar reprocessamento duplicado.
 - O resultado final é a conta financeira consistente, mesmo com comunicação assíncrona e falhas transitórias.
+
+### Esclarecimento: O que é o Outbox?
+
+**O Outbox NÃO é uma aplicação separada.** É um **componente interno** do serviço de Lançamentos, composto por:
+
+1. **Uma tabela de banco de dados** (`outbox_evento`) que reside no **mesmo PostgreSQL do serviço de Lançamentos**
+   - Quando um lançamento é registrado, o evento é gravado nessa tabela na mesma transação do lançamento
+   - Isso garante atomicidade: ou ambos são persistidos, ou nenhum é
+
+2. **Um publisher assíncrono** (poller ou scheduled task) que:
+   - Lê periodicamente a tabela `outbox_evento` procurando eventos não publicados
+   - Publica esses eventos para o broker de mensagens (RabbitMQ / SNS+SQS)
+   - Marca o evento como publicado para evitar reprocessamento
+
+**Por que aparece como "participante" no diagrama?** Para ilustrar o fluxo lógico de persistência → publicação, mesmo estando tudo dentro do mesmo banco e serviço. No diagrama, representamos os passos **8** (gravar no outbox) e **10** (publisher lê e publica) separadamente para deixar claro como funciona o padrão Transactional Outbox.
+
+**Em resumo:** Outbox é infraestrutura de dados + um background job, não uma aplicação externa.
 
 ### Regra contábil do estorno aplicada no fluxo
 
